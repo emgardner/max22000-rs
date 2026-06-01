@@ -71,9 +71,9 @@ where
         Ok(())
     }
 
-    pub fn check_crc(&mut self) -> MaxResult<()> {
-        // TODO
-        Ok(())
+    pub fn check_crc(&mut self) -> MaxResult<bool> {
+        let config = self.read_gen_config()?;
+        Ok(config.crc_en)
     }
 
     pub fn read_register(&mut self, register: Registers) -> MaxResult<[u8; 3]> {
