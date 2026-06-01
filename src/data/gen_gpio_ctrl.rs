@@ -1,5 +1,7 @@
 use bitfield::bitfield;
 
+use super::{bools_from_mask, mask_from_bools};
+
 bitfield! {
     #[derive(Clone, Copy, PartialEq, Eq)]
     pub struct GenGpioCtrlRaw(u32);
@@ -55,6 +57,56 @@ impl GenGpioCtrlRaw {
         };
 
         self.set_gpo_data(value);
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct GenGpioCtrl {
+    pub enabled: [bool; 6],
+    pub direction: [GpioDirection; 6],
+    pub output_high: [bool; 6],
+}
+
+impl From<GenGpioCtrlRaw> for GenGpioCtrl {
+    fn from(raw: GenGpioCtrlRaw) -> Self {
+        Self {
+            enabled: bools_from_mask(raw.gpio_en()),
+            direction: [
+                raw.gpio_direction(GpioPin::Gpio0),
+                raw.gpio_direction(GpioPin::Gpio1),
+                raw.gpio_direction(GpioPin::Gpio2),
+                raw.gpio_direction(GpioPin::Gpio3),
+                raw.gpio_direction(GpioPin::Gpio4),
+                raw.gpio_direction(GpioPin::Gpio5),
+            ],
+            output_high: bools_from_mask(raw.gpo_data()),
+        }
+    }
+}
+
+impl TryFrom<&[u8]> for GenGpioCtrl {
+    type Error = crate::MaxError;
+
+    fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
+        Ok(GenGpioCtrlRaw::try_from(data)?.into())
+    }
+}
+
+impl From<GenGpioCtrl> for GenGpioCtrlRaw {
+    fn from(config: GenGpioCtrl) -> Self {
+        let direction = config
+            .direction
+            .iter()
+            .enumerate()
+            .fold(0, |mask, (index, direction)| {
+                mask | (bool::from(*direction) as u8) << index
+            });
+
+        let mut raw = GenGpioCtrlRaw::RESET;
+        raw.set_gpio_en(mask_from_bools(config.enabled));
+        raw.set_gpio_dir(direction);
+        raw.set_gpo_data(mask_from_bools(config.output_high));
+        raw
     }
 }
 

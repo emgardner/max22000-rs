@@ -79,6 +79,55 @@ impl GenChnlCtrlRaw {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct GenChnlCtrl {
+    pub ai1_test: AiTestConfig,
+    pub ai2_test: AiTestConfig,
+    pub ai3_test: AiTestConfig,
+    pub ai4_test: AiTestConfig,
+    pub ai5_test: AiTestConfig,
+    pub ai6_test: AiTestConfig,
+    pub adc_channel_selection: AdcChannelSelection,
+}
+
+impl TryFrom<GenChnlCtrlRaw> for GenChnlCtrl {
+    type Error = MaxError;
+
+    fn try_from(raw: GenChnlCtrlRaw) -> Result<Self, Self::Error> {
+        Ok(Self {
+            ai1_test: raw.ai1_test_config()?,
+            ai2_test: raw.ai2_test_config()?,
+            ai3_test: raw.ai3_test_config()?,
+            ai4_test: raw.ai4_test_config()?,
+            ai5_test: raw.ai5_test_config()?,
+            ai6_test: raw.ai6_test_config()?,
+            adc_channel_selection: raw.adc_channel_selection()?,
+        })
+    }
+}
+
+impl TryFrom<&[u8]> for GenChnlCtrl {
+    type Error = MaxError;
+
+    fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
+        GenChnlCtrlRaw::try_from(data)?.try_into()
+    }
+}
+
+impl From<GenChnlCtrl> for GenChnlCtrlRaw {
+    fn from(config: GenChnlCtrl) -> Self {
+        let mut raw = GenChnlCtrlRaw::RESET;
+        raw.set_ai1_test_config(config.ai1_test);
+        raw.set_ai2_test_config(config.ai2_test);
+        raw.set_ai3_test_config(config.ai3_test);
+        raw.set_ai4_test_config(config.ai4_test);
+        raw.set_ai5_test_config(config.ai5_test);
+        raw.set_ai6_test_config(config.ai6_test);
+        raw.set_adc_channel_selection(config.adc_channel_selection);
+        raw
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum AiTestConfig {
     Disabled = 0b00,

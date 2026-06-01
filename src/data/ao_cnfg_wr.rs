@@ -22,6 +22,35 @@ impl AoCnfgWrRaw {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AoConfig {
+    pub readback: AnalogOutReadback,
+}
+
+impl From<AoCnfgWrRaw> for AoConfig {
+    fn from(raw: AoCnfgWrRaw) -> Self {
+        Self {
+            readback: raw.readback(),
+        }
+    }
+}
+
+impl TryFrom<&[u8]> for AoConfig {
+    type Error = crate::MaxError;
+
+    fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
+        Ok(AoCnfgWrRaw::try_from(data)?.into())
+    }
+}
+
+impl From<AoConfig> for AoCnfgWrRaw {
+    fn from(config: AoConfig) -> Self {
+        let mut raw = AoCnfgWrRaw::RESET;
+        raw.set_readback(config.readback);
+        raw
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum AnalogOutReadback {
     Disabled = 0,

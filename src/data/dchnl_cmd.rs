@@ -35,6 +35,40 @@ impl DChnlCmdRaw {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DChnlCmd {
+    pub mode: DChnlMode,
+    pub data_rate: DataRate,
+}
+
+impl TryFrom<DChnlCmdRaw> for DChnlCmd {
+    type Error = MaxError;
+
+    fn try_from(raw: DChnlCmdRaw) -> Result<Self, Self::Error> {
+        Ok(Self {
+            mode: raw.mode()?,
+            data_rate: raw.data_rate()?,
+        })
+    }
+}
+
+impl TryFrom<&[u8]> for DChnlCmd {
+    type Error = MaxError;
+
+    fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
+        DChnlCmdRaw::try_from(data)?.try_into()
+    }
+}
+
+impl From<DChnlCmd> for DChnlCmdRaw {
+    fn from(command: DChnlCmd) -> Self {
+        let mut raw = DChnlCmdRaw::RESET;
+        raw.set_mode(command.mode);
+        raw.set_data_rate(command.data_rate);
+        raw
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum DChnlMode {
     PowerDown = 0b01,

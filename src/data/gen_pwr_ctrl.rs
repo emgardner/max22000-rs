@@ -49,6 +49,44 @@ impl GenPwrCtrlRaw {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct GenPwrCtrl {
+    pub aodac_power_state: PowerState,
+    pub aodac_reset_state: ResetState,
+    pub general_power_state: PowerState,
+    pub general_reset_state: ResetState,
+}
+
+impl From<GenPwrCtrlRaw> for GenPwrCtrl {
+    fn from(raw: GenPwrCtrlRaw) -> Self {
+        Self {
+            aodac_power_state: raw.aodac_power_state(),
+            aodac_reset_state: raw.aodac_reset_state(),
+            general_power_state: raw.general_power_state(),
+            general_reset_state: raw.general_reset_state(),
+        }
+    }
+}
+
+impl TryFrom<&[u8]> for GenPwrCtrl {
+    type Error = crate::MaxError;
+
+    fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
+        Ok(GenPwrCtrlRaw::try_from(data)?.into())
+    }
+}
+
+impl From<GenPwrCtrl> for GenPwrCtrlRaw {
+    fn from(config: GenPwrCtrl) -> Self {
+        let mut raw = GenPwrCtrlRaw::RESET;
+        raw.set_aodac_power_state(config.aodac_power_state);
+        raw.set_aodac_reset_state(config.aodac_reset_state);
+        raw.set_general_power_state(config.general_power_state);
+        raw.set_general_reset_state(config.general_reset_state);
+        raw
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum PowerState {
     Normal = 0,

@@ -24,3 +24,34 @@ impl DChnlNSelRaw {
         self.set_dchnl_n_sel(selection.into());
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DChnlNSel {
+    pub adc_channel_selection: AdcChannelSelection,
+}
+
+impl TryFrom<DChnlNSelRaw> for DChnlNSel {
+    type Error = MaxError;
+
+    fn try_from(raw: DChnlNSelRaw) -> Result<Self, Self::Error> {
+        Ok(Self {
+            adc_channel_selection: raw.adc_channel_selection()?,
+        })
+    }
+}
+
+impl TryFrom<&[u8]> for DChnlNSel {
+    type Error = MaxError;
+
+    fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
+        DChnlNSelRaw::try_from(data)?.try_into()
+    }
+}
+
+impl From<DChnlNSel> for DChnlNSelRaw {
+    fn from(selection: DChnlNSel) -> Self {
+        let mut raw = DChnlNSelRaw::RESET;
+        raw.set_adc_channel_selection(selection.adc_channel_selection);
+        raw
+    }
+}

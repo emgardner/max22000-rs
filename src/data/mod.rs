@@ -1,5 +1,30 @@
 use crate::MaxError;
 
+pub(crate) fn u24_from_be_bytes(data: [u8; 3]) -> u32 {
+    u32::from_be_bytes([0, data[0], data[1], data[2]])
+}
+
+pub(crate) fn sign_extend(value: u32, bits: u8) -> i32 {
+    ((value << (32 - bits)) as i32) >> (32 - bits)
+}
+
+pub(crate) fn bools_from_mask(mask: u8) -> [bool; 6] {
+    [
+        mask & 0b000001 != 0,
+        mask & 0b000010 != 0,
+        mask & 0b000100 != 0,
+        mask & 0b001000 != 0,
+        mask & 0b010000 != 0,
+        mask & 0b100000 != 0,
+    ]
+}
+
+pub(crate) fn mask_from_bools(bits: [bool; 6]) -> u8 {
+    bits.iter()
+        .enumerate()
+        .fold(0, |mask, (index, bit)| mask | ((*bit as u8) << index))
+}
+
 macro_rules! impl_u24_register {
     ($ty:ty) => {
         impl $ty {
@@ -15,7 +40,7 @@ macro_rules! impl_u24_register {
 
         impl From<[u8; 3]> for $ty {
             fn from(data: [u8; 3]) -> Self {
-                Self(u32::from_be_bytes([0, data[0], data[1], data[2]]))
+                Self(crate::data::u24_from_be_bytes(data))
             }
         }
 
@@ -43,27 +68,55 @@ macro_rules! impl_u24_register {
 }
 
 pub mod ao_cnfg_wr;
+pub mod ao_data_rd;
+pub mod ao_data_wr;
+pub mod ao_gain_correction_rd;
+pub mod ao_gain_correction_wr;
+pub mod ao_offset_correction_rd;
+pub mod ao_offset_correction_wr;
+pub mod ao_status_rd;
 pub mod dchnl_cmd;
 pub mod dchnl_ctrl1;
 pub mod dchnl_ctrl2;
+pub mod dchnl_data;
 pub mod dchnl_n_sel;
+pub mod dchnl_n_sgc;
+pub mod dchnl_n_soc;
+pub mod dchnl_stat;
 pub mod gen_chnl_ctrl;
 pub mod gen_cnfg;
+pub mod gen_gpi_data;
 pub mod gen_gpi_int;
 pub mod gen_gpio_ctrl;
+pub mod gen_int;
 pub mod gen_inten;
+pub mod gen_prod_rev;
 pub mod gen_pwr_ctrl;
 
 pub use ao_cnfg_wr::*;
+pub use ao_data_rd::*;
+pub use ao_data_wr::*;
+pub use ao_gain_correction_rd::*;
+pub use ao_gain_correction_wr::*;
+pub use ao_offset_correction_rd::*;
+pub use ao_offset_correction_wr::*;
+pub use ao_status_rd::*;
 pub use dchnl_cmd::*;
 pub use dchnl_ctrl1::*;
 pub use dchnl_ctrl2::*;
+pub use dchnl_data::*;
 pub use dchnl_n_sel::*;
+pub use dchnl_n_sgc::*;
+pub use dchnl_n_soc::*;
+pub use dchnl_stat::*;
 pub use gen_chnl_ctrl::*;
 pub use gen_cnfg::*;
+pub use gen_gpi_data::*;
 pub use gen_gpi_int::*;
 pub use gen_gpio_ctrl::*;
+pub use gen_int::*;
 pub use gen_inten::*;
+pub use gen_prod_rev::*;
 pub use gen_pwr_ctrl::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -178,81 +231,4 @@ pub enum Registers {
     AoOffsetCorrectionRd = 0x45,
     AoGainCorrectionRd = 0x46,
     AoStatusRd = 0x47,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ProductInfo {
-    pub output_channels: u8,
-    pub input_channels: u8,
-    pub tc_support: bool,
-}
-
-impl From<u8> for ProductInfo {
-    fn from(data: u8) -> Self {
-        Self {
-            output_channels: data >> 5 & 0b111,
-            input_channels: data >> 1 & 0b1111,
-            tc_support: data & 0x1 > 0,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Product {
-    pub product_id: ProductInfo,
-    pub serial_1: u8,
-    pub serial_2: u8,
-}
-
-impl TryFrom<&[u8]> for Product {
-    type Error = MaxError;
-
-    fn try_from(data: &[u8]) -> Result<Self, MaxError> {
-        Ok(Product {
-            product_id: data[0].into(),
-            serial_1: data[1],
-            serial_2: data[2],
-        })
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Rev {
-    pub rev_id: u8,
-    pub serial_1: u8,
-    pub serial_2: u8,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct DeviceInfo {
-    pub product_id: ProductInfo,
-    pub rev_id: u8,
-    pub serial: u32,
-}
-
-impl TryFrom<&[u8]> for Rev {
-    type Error = MaxError;
-
-    fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
-        Ok(Rev {
-            rev_id: data[0],
-            serial_1: data[1],
-            serial_2: data[2],
-        })
-    }
-}
-
-impl DeviceInfo {
-    pub fn from_parts(product: &Product, rev: &Rev) -> Self {
-        Self {
-            product_id: product.product_id,
-            rev_id: rev.rev_id,
-            serial: u32::from_be_bytes([
-                product.serial_1,
-                product.serial_2,
-                rev.serial_1,
-                rev.serial_2,
-            ]),
-        }
-    }
 }

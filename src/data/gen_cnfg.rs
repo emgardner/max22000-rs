@@ -75,6 +75,67 @@ impl GenConfigRaw {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct GenConfig {
+    pub crc_en: bool,
+    pub dac_ref_sel: bool,
+    pub adc_ref_sel: bool,
+    pub line_cnfg: bool,
+    pub ao_cnfg: AnalogOutConfig,
+    pub ai1_2_config: Ai1_2Config,
+    pub ai3_config: Ai3Config,
+    pub ai4_config: Ai4Config,
+    pub ai5_6_config: Ai5_6Config,
+    pub ai5_df_gain: Ai5DifferentialGain,
+    pub ovc_ctrl: bool,
+}
+
+impl TryFrom<GenConfigRaw> for GenConfig {
+    type Error = MaxError;
+
+    fn try_from(raw: GenConfigRaw) -> Result<Self, Self::Error> {
+        Ok(Self {
+            crc_en: raw.crc_en(),
+            dac_ref_sel: raw.dacref_sel(),
+            adc_ref_sel: raw.adcref_sel(),
+            line_cnfg: raw.line_cnfg(),
+            ao_cnfg: raw.analog_out_config()?,
+            ai1_2_config: raw.ai1_2_config()?,
+            ai3_config: raw.ai3_config(),
+            ai4_config: raw.ai4_config(),
+            ai5_6_config: raw.ai5_6_config()?,
+            ai5_df_gain: raw.ai5_differential_gain()?,
+            ovc_ctrl: raw.ovc_ctrl(),
+        })
+    }
+}
+
+impl TryFrom<&[u8]> for GenConfig {
+    type Error = MaxError;
+
+    fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
+        GenConfigRaw::try_from(data)?.try_into()
+    }
+}
+
+impl From<GenConfig> for GenConfigRaw {
+    fn from(config: GenConfig) -> Self {
+        let mut raw = GenConfigRaw::RESET;
+        raw.set_crc_en(config.crc_en);
+        raw.set_dacref_sel(config.dac_ref_sel);
+        raw.set_adcref_sel(config.adc_ref_sel);
+        raw.set_line_cnfg(config.line_cnfg);
+        raw.set_analog_out_config(config.ao_cnfg);
+        raw.set_ai1_2_config(config.ai1_2_config);
+        raw.set_ai3_config(config.ai3_config);
+        raw.set_ai4_config(config.ai4_config);
+        raw.set_ai5_6_config(config.ai5_6_config);
+        raw.set_ai5_differential_gain(config.ai5_df_gain);
+        raw.set_ovc_ctrl(config.ovc_ctrl);
+        raw
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum AnalogOutConfig {
     HighImpedance = 0b0000,

@@ -40,6 +40,41 @@ impl DChnlCtrl1Raw {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DChnlCtrl1 {
+    pub power_down_state: AdcPowerDownState,
+    pub conversion_cycle_mode: ConversionCycleMode,
+    pub single_cycle_run_mode: SingleCycleRunMode,
+}
+
+impl From<DChnlCtrl1Raw> for DChnlCtrl1 {
+    fn from(raw: DChnlCtrl1Raw) -> Self {
+        Self {
+            power_down_state: raw.power_down_state(),
+            conversion_cycle_mode: raw.conversion_cycle_mode(),
+            single_cycle_run_mode: raw.single_cycle_run_mode(),
+        }
+    }
+}
+
+impl TryFrom<&[u8]> for DChnlCtrl1 {
+    type Error = crate::MaxError;
+
+    fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
+        Ok(DChnlCtrl1Raw::try_from(data)?.into())
+    }
+}
+
+impl From<DChnlCtrl1> for DChnlCtrl1Raw {
+    fn from(config: DChnlCtrl1) -> Self {
+        let mut raw = DChnlCtrl1Raw::RESET;
+        raw.set_power_down_state(config.power_down_state);
+        raw.set_conversion_cycle_mode(config.conversion_cycle_mode);
+        raw.set_single_cycle_run_mode(config.single_cycle_run_mode);
+        raw
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum AdcPowerDownState {
     Standby = 0,

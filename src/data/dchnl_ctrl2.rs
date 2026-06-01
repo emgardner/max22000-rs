@@ -49,6 +49,44 @@ impl DChnlCtrl2Raw {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DChnlCtrl2 {
+    pub clock_source: AdcClockSource,
+    pub external_sync: ExternalSync,
+    pub gain_correction: CalibrationCorrection,
+    pub offset_correction: CalibrationCorrection,
+}
+
+impl From<DChnlCtrl2Raw> for DChnlCtrl2 {
+    fn from(raw: DChnlCtrl2Raw) -> Self {
+        Self {
+            clock_source: raw.clock_source(),
+            external_sync: raw.external_sync(),
+            gain_correction: raw.gain_correction(),
+            offset_correction: raw.offset_correction(),
+        }
+    }
+}
+
+impl TryFrom<&[u8]> for DChnlCtrl2 {
+    type Error = crate::MaxError;
+
+    fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
+        Ok(DChnlCtrl2Raw::try_from(data)?.into())
+    }
+}
+
+impl From<DChnlCtrl2> for DChnlCtrl2Raw {
+    fn from(config: DChnlCtrl2) -> Self {
+        let mut raw = DChnlCtrl2Raw::RESET;
+        raw.set_clock_source(config.clock_source);
+        raw.set_external_sync(config.external_sync);
+        raw.set_gain_correction(config.gain_correction);
+        raw.set_offset_correction(config.offset_correction);
+        raw
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum AdcClockSource {
     InternalOscillator = 0,
