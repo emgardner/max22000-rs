@@ -89,6 +89,20 @@ pub struct GenChnlCtrl {
     pub adc_channel_selection: AdcChannelSelection,
 }
 
+impl GenChnlCtrl {
+    pub fn no_selection() -> GenChnlCtrl {
+        GenChnlCtrl {
+            ai1_test: AiTestConfig::Disabled,
+            ai2_test: AiTestConfig::Disabled,
+            ai3_test: AiTestConfig::Disabled,
+            ai4_test: AiTestConfig::Disabled,
+            ai5_test: AiTestConfig::Disabled,
+            ai6_test: AiTestConfig::Disabled,
+            adc_channel_selection: AdcChannelSelection::None,
+        }
+    }
+}
+
 impl TryFrom<GenChnlCtrlRaw> for GenChnlCtrl {
     type Error = MaxError;
 

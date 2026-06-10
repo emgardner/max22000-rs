@@ -89,6 +89,42 @@ pub struct GenConfig {
     pub ovc_ctrl: bool,
 }
 
+impl GenConfig {
+    pub fn clear() -> GenConfig {
+        GenConfig {
+            crc_en: false,
+            dac_ref_sel: false,
+            adc_ref_sel: false,
+            line_cnfg: false,
+            ao_cnfg: AnalogOutConfig::HighImpedance,
+            ai1_2_config: Ai1_2Config::PoweredDown,
+            ai3_config: Ai3Config::PoweredDown,
+            ai4_config: Ai4Config::PoweredDown,
+            ai5_6_config: Ai5_6Config::PoweredDown,
+            ai5_df_gain: Ai5DifferentialGain::DefaultRange,
+            ovc_ctrl: false,
+        }
+    }
+}
+
+impl Default for GenConfig {
+    fn default() -> Self {
+        Self {
+            crc_en: false,
+            dac_ref_sel: false,
+            adc_ref_sel: false,
+            line_cnfg: false,
+            ao_cnfg: AnalogOutConfig::HighImpedance,
+            ai1_2_config: Ai1_2Config::PoweredDown,
+            ai3_config: Ai3Config::PoweredDown,
+            ai4_config: Ai4Config::PoweredDown,
+            ai5_6_config: Ai5_6Config::PoweredDown,
+            ai5_df_gain: Ai5DifferentialGain::DefaultRange,
+            ovc_ctrl: false,
+        }
+    }
+}
+
 impl TryFrom<GenConfigRaw> for GenConfig {
     type Error = MaxError;
 
