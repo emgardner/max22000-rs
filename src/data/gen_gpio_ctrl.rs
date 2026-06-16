@@ -67,6 +67,27 @@ pub struct GenGpioCtrl {
     pub output_high: [bool; 6],
 }
 
+impl GenGpioCtrl {
+    pub fn enable_input(&mut self, pin: GpioPin) {
+        self.enabled[pin as usize] = true;
+        self.direction[pin as usize] = GpioDirection::Input;
+    }
+
+    pub fn enable_output(&mut self, pin: GpioPin, state: bool) {
+        self.enabled[pin as usize] = true;
+        self.direction[pin as usize] = GpioDirection::Output;
+        self.output_high[pin as usize] = state;
+    }
+
+    pub fn set_channel_state(&mut self, pin: GpioPin, state: bool) {
+        self.output_high[pin as usize] = state;
+    }
+
+    pub fn disable_channel(&mut self, pin: GpioPin) {
+        self.enabled[pin as usize] = false;
+    }
+}
+
 impl From<GenGpioCtrlRaw> for GenGpioCtrl {
     fn from(raw: GenGpioCtrlRaw) -> Self {
         Self {

@@ -30,6 +30,19 @@ pub struct GenInt {
     pub gpi: bool,
 }
 
+impl GenInt {
+    pub fn is_error(&self) -> bool {
+        self.pga_overvoltage
+            || self.hvdd_undervoltage
+            || self.hvddo_undervoltage
+            || self.thermal_shutdown
+            || self.thermal_warning
+            || self.overcurrent
+            || self.configuration
+            || self.crc
+    }
+}
+
 impl From<GenIntRaw> for GenInt {
     fn from(raw: GenIntRaw) -> Self {
         Self {

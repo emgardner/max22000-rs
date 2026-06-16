@@ -17,6 +17,17 @@ pub struct AoOffsetCorrectionWr {
     pub code: i32,
 }
 
+impl AoOffsetCorrectionWr {
+    pub const MIN_CODE: i32 = -(1 << 17);
+    pub const MAX_CODE: i32 = (1 << 17) - 1;
+    pub const ZERO: Self = Self { code: 0 };
+
+    /// Returns the Table 8 offset fraction, `AO_OFFSET_W / 2^17`.
+    pub fn fraction(self) -> f64 {
+        self.code.clamp(Self::MIN_CODE, Self::MAX_CODE) as f64 / 131_072.0
+    }
+}
+
 impl From<AoOffsetCorrectionWrRaw> for AoOffsetCorrectionWr {
     fn from(raw: AoOffsetCorrectionWrRaw) -> Self {
         Self {
@@ -36,7 +47,13 @@ impl TryFrom<&[u8]> for AoOffsetCorrectionWr {
 impl From<AoOffsetCorrectionWr> for AoOffsetCorrectionWrRaw {
     fn from(offset: AoOffsetCorrectionWr) -> Self {
         let mut raw = AoOffsetCorrectionWrRaw::from([0, 0, 0]);
-        raw.set_ao_offset_w(offset.code as u32 & 0x0003_ffff);
+        raw.set_ao_offset_w(
+            offset.code.clamp(
+                AoOffsetCorrectionWr::MIN_CODE,
+                AoOffsetCorrectionWr::MAX_CODE,
+            ) as u32
+                & 0x0003_ffff,
+        );
         raw
     }
 }

@@ -100,7 +100,12 @@ where
     pub fn write_register(&mut self, register: Registers, payload: [u8; 3]) -> MaxResult<()> {
         let operation = Operation::Write(register).as_u8();
         let frame = [operation, payload[0], payload[1], payload[2]];
-
+        if register == Registers::AoDataWr {
+            println!("AO DATA: {:02X?}", frame);
+        }
+        if register == Registers::AoGainCorrectionWr {
+            println!("AO GAIN: {:02X?}", frame);
+        }
         if self.crc_enabled {
             let mut frame_with_crc = [0; 5];
             frame_with_crc[..4].copy_from_slice(&frame);
@@ -246,20 +251,20 @@ where
         self.write_gen_pwr_ctrl_raw(config.into())
     }
 
-    pub fn read_dchnl_cmd_raw(&mut self) -> MaxResult<data::DChnlCmdRaw> {
-        self.read_register_as(Registers::DchnlCmd)
+    pub fn read_dchnl_mode_raw(&mut self) -> MaxResult<data::DChnlMode> {
+        self.read_register_as(Registers::DchnlMode)
     }
 
-    pub fn read_dchnl_cmd(&mut self) -> MaxResult<data::DChnlCmd> {
-        self.read_register_as(Registers::DchnlCmd)
+    pub fn read_dchnl_mode(&mut self) -> MaxResult<data::DChnlMode> {
+        self.read_register_as(Registers::DchnlMode)
     }
 
-    pub fn write_dchnl_cmd_raw(&mut self, command: data::DChnlCmdRaw) -> MaxResult<()> {
-        self.write_register_as(Registers::DchnlCmd, command)
+    pub fn write_dchnl_mode_raw(&mut self, command: data::DChnlModeRaw) -> MaxResult<()> {
+        self.write_register_as(Registers::DchnlMode, command)
     }
 
-    pub fn write_dchnl_cmd(&mut self, command: data::DChnlCmd) -> MaxResult<()> {
-        self.write_dchnl_cmd_raw(command.into())
+    pub fn write_dchnl_mode(&mut self, command: data::DChnlMode) -> MaxResult<()> {
+        self.write_dchnl_mode_raw(command.into())
     }
 
     pub fn read_dchnl_stat_raw(&mut self) -> MaxResult<data::DChnlStatRaw> {
@@ -358,28 +363,12 @@ where
         self.write_dchnl_n_sgc_raw(gain.into())
     }
 
-    pub fn read_ao_data_wr_raw(&mut self) -> MaxResult<data::AoDataWrRaw> {
-        self.read_register_as(Registers::AoDataWr)
-    }
-
-    pub fn read_ao_data_wr(&mut self) -> MaxResult<data::AoDataWr> {
-        self.read_register_as(Registers::AoDataWr)
-    }
-
     pub fn write_ao_data_wr_raw(&mut self, data: data::AoDataWrRaw) -> MaxResult<()> {
         self.write_register_as(Registers::AoDataWr, data)
     }
 
     pub fn write_ao_data_wr(&mut self, data: data::AoDataWr) -> MaxResult<()> {
         self.write_ao_data_wr_raw(data.into())
-    }
-
-    pub fn read_ao_offset_correction_wr_raw(&mut self) -> MaxResult<data::AoOffsetCorrectionWrRaw> {
-        self.read_register_as(Registers::AoOffsetCorrectionWr)
-    }
-
-    pub fn read_ao_offset_correction_wr(&mut self) -> MaxResult<data::AoOffsetCorrectionWr> {
-        self.read_register_as(Registers::AoOffsetCorrectionWr)
     }
 
     pub fn write_ao_offset_correction_wr_raw(
@@ -394,14 +383,6 @@ where
         offset: data::AoOffsetCorrectionWr,
     ) -> MaxResult<()> {
         self.write_ao_offset_correction_wr_raw(offset.into())
-    }
-
-    pub fn read_ao_gain_correction_wr_raw(&mut self) -> MaxResult<data::AoGainCorrectionWrRaw> {
-        self.read_register_as(Registers::AoGainCorrectionWr)
-    }
-
-    pub fn read_ao_gain_correction_wr(&mut self) -> MaxResult<data::AoGainCorrectionWr> {
-        self.read_register_as(Registers::AoGainCorrectionWr)
     }
 
     pub fn write_ao_gain_correction_wr_raw(

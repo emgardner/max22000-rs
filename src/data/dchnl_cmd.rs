@@ -5,23 +5,23 @@ use crate::MaxError;
 
 bitfield! {
     #[derive(Clone, Copy, PartialEq, Eq)]
-    pub struct DChnlCmdRaw(u32);
+    pub struct DChnlModeRaw(u32);
     impl Debug;
     u8;
     pub dchnl_mode, set_dchnl_mode: 21, 20;
     pub dchnl_rate, set_dchnl_rate: 19, 16;
 }
 
-impl_u24_register!(DChnlCmdRaw);
+impl_u24_register!(DChnlModeRaw);
 
-impl DChnlCmdRaw {
+impl DChnlModeRaw {
     pub const RESET: Self = Self(0x10_00_00);
 
-    pub fn mode(self) -> Result<DChnlMode, MaxError> {
+    pub fn mode(self) -> Result<DChnlPower, MaxError> {
         self.dchnl_mode().try_into()
     }
 
-    pub fn set_mode(&mut self, mode: DChnlMode) {
+    pub fn set_mode(&mut self, mode: DChnlPower) {
         self.set_dchnl_mode(mode.into());
     }
 
@@ -35,15 +35,15 @@ impl DChnlCmdRaw {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct DChnlCmd {
-    pub mode: DChnlMode,
+pub struct DChnlMode {
+    pub mode: DChnlPower,
     pub data_rate: DataRate,
 }
 
-impl TryFrom<DChnlCmdRaw> for DChnlCmd {
+impl TryFrom<DChnlModeRaw> for DChnlMode {
     type Error = MaxError;
 
-    fn try_from(raw: DChnlCmdRaw) -> Result<Self, Self::Error> {
+    fn try_from(raw: DChnlModeRaw) -> Result<Self, Self::Error> {
         Ok(Self {
             mode: raw.mode()?,
             data_rate: raw.data_rate()?,
@@ -51,17 +51,17 @@ impl TryFrom<DChnlCmdRaw> for DChnlCmd {
     }
 }
 
-impl TryFrom<&[u8]> for DChnlCmd {
+impl TryFrom<&[u8]> for DChnlMode {
     type Error = MaxError;
 
     fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
-        DChnlCmdRaw::try_from(data)?.try_into()
+        DChnlModeRaw::try_from(data)?.try_into()
     }
 }
 
-impl From<DChnlCmd> for DChnlCmdRaw {
-    fn from(command: DChnlCmd) -> Self {
-        let mut raw = DChnlCmdRaw::RESET;
+impl From<DChnlMode> for DChnlModeRaw {
+    fn from(command: DChnlMode) -> Self {
+        let mut raw = DChnlModeRaw::RESET;
         raw.set_mode(command.mode);
         raw.set_data_rate(command.data_rate);
         raw
@@ -70,12 +70,12 @@ impl From<DChnlCmd> for DChnlCmdRaw {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
-pub enum DChnlMode {
+pub enum DChnlPower {
     PowerDown = 0b01,
     Conversion = 0b11,
 }
 
-impl TryFrom<u8> for DChnlMode {
+impl TryFrom<u8> for DChnlPower {
     type Error = MaxError;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
@@ -87,8 +87,8 @@ impl TryFrom<u8> for DChnlMode {
     }
 }
 
-impl From<DChnlMode> for u8 {
-    fn from(mode: DChnlMode) -> Self {
+impl From<DChnlPower> for u8 {
+    fn from(mode: DChnlPower) -> Self {
         mode as Self
     }
 }

@@ -215,7 +215,7 @@ pub enum Registers {
     GenInt = 0x07,
     GenIntEn = 0x08,
     GenPwrCtrl = 0x09,
-    DchnlCmd = 0x20,
+    DchnlMode = 0x20,
     DchnlStat = 0x21,
     DchnlCtrl1 = 0x22,
     DchnlCtrl2 = 0x23,
@@ -231,4 +231,43 @@ pub enum Registers {
     AoOffsetCorrectionRd = 0x45,
     AoGainCorrectionRd = 0x46,
     AoStatusRd = 0x47,
+}
+
+impl Registers {
+    pub const ALL: &'static [Registers] = &[
+        Registers::GenralProduct1,
+        Registers::GenralRev2,
+        Registers::GenConfig,
+        Registers::GenChannel,
+        Registers::GenGpio,
+        Registers::GenGpioInt,
+        Registers::GenGpioData,
+        Registers::GenInt,
+        Registers::GenIntEn,
+        Registers::GenPwrCtrl,
+        Registers::DchnlMode,
+        Registers::DchnlStat,
+        Registers::DchnlCtrl1,
+        Registers::DchnlCtrl2,
+        Registers::DchnlData,
+        Registers::DchnlNsel,
+        Registers::DchnlNSoc,
+        Registers::DchnlNSgc,
+        Registers::AoDataWr,
+        Registers::AoOffsetCorrectionWr,
+        Registers::AoGainCorrectionWr,
+        Registers::AoConfigWr,
+        Registers::AoDataRd,
+        Registers::AoOffsetCorrectionRd,
+        Registers::AoGainCorrectionRd,
+        Registers::AoStatusRd,
+    ];
+
+    pub fn iter() -> impl Iterator<Item = Registers> {
+        Self::ALL.iter().copied()
+    }
+
+    pub const fn addr(self) -> u8 {
+        self as u8
+    }
 }
